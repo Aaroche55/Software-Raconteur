@@ -5,12 +5,16 @@ import matplotlib.pyplot as plt
 with open("eva-data.json", "r", encoding="utf-8") as file:
     eva_data = json.load(file)
 
-selected_country = input("Enter the country to report: ").strip()
+first_country = input("Enter the first country to report: ").strip()
+second_country = input("Enter the second country to report: ").strip()
+selected_countries = (first_country.casefold(), second_country.casefold())
 records = []
-total_hours = 0
+country_totals = {first_country.casefold(): 0, second_country.casefold(): 0}
 
 for eva in eva_data:
-    if eva.get("country", "").strip().casefold() != selected_country.casefold():
+    country = eva.get("country", "").strip()
+    country_key = country.casefold()
+    if country_key not in selected_countries:
         continue
 
     date_text = eva.get("date")
@@ -21,7 +25,7 @@ for eva in eva_data:
 
     hours, minutes = map(int, duration_text.split(":"))
     duration_hours = hours + minutes / 60
-    total_hours += duration_hours
+    country_totals[country_key] += duration_hours
 
     if not date_text:
         continue
@@ -29,7 +33,17 @@ for eva in eva_data:
     date = datetime.fromisoformat(date_text)
     records.append((date, duration_hours))
 
-print(f"Total EVA duration for {selected_country}: {total_hours:.2f} hours")
+first_total = country_totals[first_country.casefold()]
+second_total = country_totals[second_country.casefold()]
+print(f"Total EVA duration for {first_country}: {first_total:.2f} hours")
+print(f"Total EVA duration for {second_country}: {second_total:.2f} hours")
+
+if first_total > second_total:
+    print(f"{first_country} has the greater total EVA duration.")
+elif second_total > first_total:
+    print(f"{second_country} has the greater total EVA duration.")
+else:
+    print("Both countries have the same total EVA duration.")
 
 records.sort(key=lambda record: record[0])
 
